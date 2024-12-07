@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticketing Page</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.3/xlsx.full.min.js"></script> <!-- SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script> <!-- FileSaver.js -->
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #63609F;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .container {
+            width: 800px;
+            height: 500px;
+            background-color: #63609F;
+            padding: 20px;
+            position: relative;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container label {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #FFD700; /* Gold for the title */
+            font-weight: bold;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 15px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            text-align: center;
+            width: 200px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-bottom: 15px;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        .button:active {
+            transform: scale(0.98); /* Slight press effect */
+        }
+
+        #reset_button {
+            background-color: #FF7777;
+            margin-left: 300px;
+            margin-top: -350px;
+        }
+
+        #submit_button {
+            background-color: #4CAF50;
+            margin-left: 300px; /* Green for Submit */
+        }
+
+        .text-label {
+            background-color: #DE7777;
+            color: white;
+            text-align: center;
+            padding: 5px;
+            border-radius: 5px;
+            width: 200px;
+            margin: 10px 0;
+        }
+
+        .text-box {
+            width: 300px;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #BCA1A1;
+            background-color: #FBE9E9;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .form-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            width: 100%;
+            text-align: left;
+        }
+
+        /* Ensure responsiveness */
+        @media (max-width: 900px) {
+            .container {
+                width: 90%;
+                height: auto;
+            }
+
+            .button {
+                width: 100%;
+            }
+
+            .text-box {
+                width: 90%;
+            }
+        }
+
+        /* Modal styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        .modal-content p {
+            margin: 10px 0;
+        }
+
+        .modal-content button {
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .confirm-button {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .cancel-button {
+            background-color: #FF7777;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+<!-- SoundCloud Music (smaller size at the bottom) -->
+    <iframe 
+        id="music-player"
+        width="100%" 
+        height="60" 
+        scrolling="no" 
+        frameborder="no" 
+        allow="autoplay" 
+        src="https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/tracks/638698548&color=%23ff5500&auto_play=true&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true">
+    </iframe>
+    <div style="font-size: 10px; color: #cccccc; line-break: anywhere; word-break: normal; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-family: Interstate, Lucida Grande, Lucida Sans Unicode, Lucida Sans, Garuda, Verdana, Tahoma, sans-serif; font-weight: 100;">
+        <a href="https://soundcloud.com/video-background-music" 
+           title="Fesliyan Studios" 
+           target="_blank" 
+           style="color: #cccccc; text-decoration: none;">
+           Fesliyan Studios
+        </a> 
+        · 
+        <a href="https://soundcloud.com/video-background-music/stock-jazz-elevator-music-funny-meme-effect" 
+           title="Stock Jazz Elevator Music | Funny Meme Effect" 
+           target="_blank" 
+           style="color: #cccccc; text-decoration: none;">
+           Stock Jazz Elevator Music | Funny Meme Effect
+        </a>
+    </div>
+    <div class="container">
+        <label>Discover your next dream destination!</label>
+
+        <!-- Form -->
+        <div class="form-section">
+            <div class="form-group">
+                <div class="text-label">Date and Time:</div>
+                <input type="datetime-local" id="text_box_date" class="text-box">
+            </div>
+
+            <div class="form-group">
+                <div class="text-label">Destination:</div>
+                <input type="text" id="text_box_destination" class="text-box" placeholder="Enter destination (min 3 characters)">
+            </div>
+
+            <div class="form-group">
+                <div class="text-label">Phone Number:</div>
+                <input type="text" id="text_box_phone" class="text-box" placeholder="Enter phone number (e.g., 010-XXXX-XXXX)">
+            </div>
+
+            <!-- File upload button -->
+            <input type="file" id="fileUpload" class="button" accept=".xlsx" onchange="handleFileUpload(event)">
+        </div>
+
+        <!-- Buttons -->
+        <button id="reset_button" class="button" onclick="resetForm()">Reset</button>
+        <button id="submit_button" class="button" onclick="previewForm()">Submit</button>
+    </div>
+
+    <script>
+        let uploadedData = [];
+
+        // Set current date and time as default
+        document.getElementById("text_box_date").value = new Date().toISOString().slice(0, 16);
+
+        // Handle file upload
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: "array" });
+
+                const sheetName = workbook.SheetNames[0];
+                const sheet = workbook.Sheets[sheetName];
+                const uploaded = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+                // Skip header row
+                const newUploadedData = uploaded.slice(1);
+
+                // Remove duplicate data
+                const existingData = JSON.parse(localStorage.getItem("journalData")) || [["Date and Time", "Destination", "Phone Number"]];
+                const existingEntries = existingData.slice(1).map(row => row.join('|'));
+                const newUniqueData = newUploadedData.filter(row => !existingEntries.includes(row.join('|')));
+
+                uploadedData = uploadedData.concat(newUniqueData);
+                alert(`${newUniqueData.length} records added. ${newUploadedData.length - newUniqueData.length} duplicates excluded.`);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Show preview before confirming submission
+        function previewForm() {
+            const dateInput = document.getElementById("text_box_date").value.trim();
+            const destinationInput = document.getElementById("text_box_destination").value.trim();
+            const phoneInput = document.getElementById("text_box_phone").value.trim();
+
+            if (!dateInput || !destinationInput || !phoneInput) {
+                alert("Please fill out all fields.");
+                return;
+            }
+
+            const previewData = `
+                <p><strong>Date and Time:</strong> ${dateInput}</p>
+                <p><strong>Destination:</strong> ${destinationInput}</p>
+                <p><strong>Phone Number:</strong> ${phoneInput}</p>
+            `;
+
+            const modalOverlay = document.createElement("div");
+            modalOverlay.className = "modal-overlay";
+            modalOverlay.innerHTML = `
+                <div class="modal-content">
+                    ${previewData}
+                    <button class="confirm-button" onclick="submitForm()">Confirm</button>
+                    <button class="cancel-button" onclick="document.body.removeChild(this.parentElement.parentElement)">Cancel</button>
+                </div>
+            `;
+            document.body.appendChild(modalOverlay);
+        }
+
+        // Submit form data after confirming
+        function submitForm() {
+            const dateInput = document.getElementById("text_box_date").value.trim();
+            const destinationInput = document.getElementById("text_box_destination").value.trim();
+            const phoneInput = document.getElementById("text_box_phone").value.trim();
+
+            let existingData = JSON.parse(localStorage.getItem("journalData")) || [["Date and Time", "Destination", "Phone Number"]];
+
+            existingData.push([dateInput, destinationInput, phoneInput]);
+
+            uploadedData.forEach(uploadedRow => {
+                existingData.push(uploadedRow);
+            });
+
+            localStorage.setItem("journalData", JSON.stringify(existingData));
+            window.location.href = "second_page.html";
+        }
+
+        // Reset form fields
+        function resetForm() {
+            document.getElementById("text_box_date").value = new Date().toISOString().slice(0, 16);
+            document.getElementById("text_box_destination").value = "";
+            document.getElementById("text_box_phone").value = "";
+        }
+    </script>
+</body>
+</html>
