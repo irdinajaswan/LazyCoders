@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page 2 - View Journal</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #63609F;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            width: 800px;
+            height: 500px;
+            background-color: #63609F;
+            padding: 20px;
+            position: relative;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            color: #FFD700;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #confirm_button {
+            background-color: #4CAF50; /* Green */
+            color: white;
+        }
+
+        #cancel_button {
+            background-color: #FF6347; /* Red */
+            color: white;
+        }
+
+        #delete_button {
+            background-color: #FFA500; /* Orange */
+            color: white;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>List of Journeys!</h1>
+
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Date and Time</th>
+                    <th>Destination</th>
+                    <th>Phone Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data will be inserted here -->
+            </tbody>
+        </table>
+
+        <div class="buttons">
+            <button id="delete_button" class="button">Cancel journey</button>
+            <button id="confirm_button" class="button">Confirm</button>
+            <button id="cancel_button" class="button">Home</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function () {
+            // Load the stored data from localStorage
+            const data = JSON.parse(localStorage.getItem('journalData'));
+
+            if (data && data.length > 1) {
+                const tableBody = document.getElementById("dataTable").getElementsByTagName("tbody")[0];
+
+                // Insert rows with checkboxes into the table
+                data.slice(1).forEach((row, index) => { // Skip header row
+                    const newRow = tableBody.insertRow();
+
+                    // Add checkbox cell
+                    const checkboxCell = newRow.insertCell();
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.className = "row-checkbox";
+                    checkbox.dataset.rowIndex = index; // Store the row index
+                    checkboxCell.appendChild(checkbox);
+
+                    // Add data cells
+                    row.forEach(cellData => {
+                        const cell = newRow.insertCell();
+                        cell.textContent = cellData;
+                    });
+                });
+            } else {
+                alert("No data available to display.");
+            }
+
+            // Add event listeners for the buttons
+            document.getElementById("delete_button").addEventListener("click", deleteSelectedRows);
+            document.getElementById("cancel_button").addEventListener("click", () => {
+                window.location.href = "ticketing.html"; // Go back to the ticketing page
+            });
+            document.getElementById("confirm_button").addEventListener("click", () => {
+                updateExcel(); // Append the data to an Excel file
+                alert("Reservation confirmed and saved to Excel!");
+            });
+        };
+
+        function deleteSelectedRows() {
+            const checkboxes = document.querySelectorAll(".row-checkbox");
+            const data = JSON.parse(localStorage.getItem('journalData'));
+
+            // Collect indices of rows to delete
+            const indicesToDelete = [];
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    indicesToDelete.push(Number(checkbox.dataset.rowIndex));
+                }
+            });
+
+            if (indicesToDelete.length === 0) {
+                alert("No rows selected for deletion.");
+                return;
+            }
+
+            // Filter out selected rows from the data array
+            const updatedData = data.filter((_, index) => index === 0 || !indicesToDelete.includes(index - 1)); // Keep header row
+
+            // Update localStorage and reload the table
+            localStorage.setItem("journalData", JSON.stringify(updatedData));
+            location.reload(); // Reload the page to update the table
+        }
+
+        function updateExcel() {
+            const data = JSON.parse(localStorage.getItem('journalData'));
+            const wb = XLSX.utils.book_new(); // Create a new workbook
+
+            // Convert the data into a worksheet
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, "Journal Data");
+
+            // Write to the same Excel file
+            XLSX.writeFile(wb, "updated_journal_data.xlsx");
+        }
+    </script>
+</body>
+</html>
