@@ -32,6 +32,10 @@
             color: #FFD700;
         }
 
+        h2 {
+            color: #eda15f;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
@@ -105,27 +109,57 @@
             <button id="confirm_button" class="button">Confirm</button>
             <button id="cancel_button" class="button">Home</button>
         </div>
+
+        <h2 style="margin-top: 100px;">Expired Tickets</h2>
+        <table id="expiredDataTable">
+          <thead>
+              <tr>
+                  <th>Delete</th>
+                  <th>Date and Time</th>
+                  <th>Destination</th>
+                  <th>Phone Number</th>
+              </tr>
+          </thead>
+          <tbody>
+              <!-- Data will be inserted here -->
+          </tbody>
+      </table>
     </div>
 
     <script>
         window.onload = function () {
             // Load the stored data from localStorage
             const data = JSON.parse(localStorage.getItem('journalData'));
+            const currentDate = new Date();
 
             if (data && data.length > 1) {
                 const tableBody = document.getElementById("dataTable").getElementsByTagName("tbody")[0];
+                const expiredTableBody = document.getElementById("expiredDataTable").getElementsByTagName("tbody")[0];
 
-                // Insert rows with checkboxes into the table
+                // Insert rows with checkboxes into the data table
                 data.slice(1).forEach((row, index) => { // Skip header row
-                    const newRow = tableBody.insertRow();
+                    const rowDate = new Date(row[0]); // Assuming the first column is the date
 
-                    // Add checkbox cell
-                    const checkboxCell = newRow.insertCell();
-                    const checkbox = document.createElement("input");
-                    checkbox.type = "checkbox";
-                    checkbox.className = "row-checkbox";
-                    checkbox.dataset.rowIndex = index; // Store the row index
-                    checkboxCell.appendChild(checkbox);
+                    // Check if the journey is expired
+                    const isExpired = rowDate < currentDate;
+                    const newRow = (isExpired) ? expiredTableBody.insertRow() : tableBody.insertRow();
+
+
+                    if (!isExpired)
+                    {
+                        const checkboxCell = newRow.insertCell();
+                        const checkbox = document.createElement("input");
+                        checkbox.type = "checkbox";
+                        checkbox.className = "row-checkbox";
+                        checkbox.dataset.rowIndex = index; // Store the row index
+                        checkboxCell.appendChild(checkbox);
+                    } else {
+                        const deleteCell = newRow.insertCell();
+                        const deleteButton = document.createElement("button");
+                        deleteButton.textContent = "Delete";
+                        deleteButton.onclick = () => deleteExpiredRow(index);
+                        deleteCell.appendChild(deleteButton);
+                    }
 
                     // Add data cells
                     row.forEach(cellData => {
@@ -147,6 +181,15 @@
                 alert("Reservation confirmed and saved to Excel!");
             });
         };
+
+
+        function deleteExpiredRow(index) {
+            const data = JSON.parse(localStorage.getItem('journalData'));
+            // Remove the expired data from the journalData array
+            const updatedData = data.filter((_, idx) => idx !== index + 1); // +1 because we skip header row
+            localStorage.setItem("journalData", JSON.stringify(updatedData));
+            location.reload(); // Reload the page to update the table
+        }
 
         function deleteSelectedRows() {
             const checkboxes = document.querySelectorAll(".row-checkbox");
